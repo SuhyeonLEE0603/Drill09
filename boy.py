@@ -1,7 +1,7 @@
 # 이것은 각 상태들을 객체로 구현한 것임.
 import math
 from pico2d import load_image, get_time
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a
 
 
 def space_down(e):
@@ -32,11 +32,18 @@ def left_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_LEFT
 
 
+def A_Key_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_a
+
+
+def A_Key_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_a
+
+
 class Sleep:
 
     @staticmethod
     def enter(boy, e):
-        boy.frame = 0
         print('눕기')
 
     @staticmethod
@@ -119,14 +126,47 @@ class Run:
         pass
 
 
+class AutoRun:
+
+    @staticmethod
+    def enter(boy, e):
+        boy.start_time = get_time()
+        print('AutoRun enter')
+        pass
+
+    @staticmethod
+    def exit(boy, e):
+        print('AutoRun exit')
+        pass
+
+    @staticmethod
+    def do(boy):
+        boy.frame = (boy.frame + 1) % 8
+        if get_time() - boy.start_time > 5:
+            boy.state_machine.handle_event(('TIME_OUT', 5.0))
+        print('AutoRun do')
+        pass
+
+    @staticmethod
+    def draw(boy):
+        boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100,
+                            boy.x, boy.y)
+        pass
+
+
 class StateMachine:
     def __init__(self, boy):
         self.boy = boy
         self.cur_state = Idle
         self.table = {
-            Idle: {right_down: Run, left_down: Run, left_up: Run, right_up: Run, time_out: Sleep},
+            Idle: {right_down: Run, left_down: Run, left_up: Run, right_up: Run,
+                   time_out: Sleep,
+                   A_Key_down: AutoRun, A_Key_up: AutoRun},
             Run: {right_down: Idle, left_down: Idle, right_up: Idle, left_up: Idle},
-            Sleep: {right_down: Run, left_down: Run, right_up: Run, left_up: Run, space_down: Idle}
+            AutoRun: {A_Key_down: Idle, time_out_5: Idle},
+            Sleep: {right_down: Run, left_down: Run, right_up: Run, left_up: Run,
+                    space_down: Idle,
+                    A_Key_up: AutoRun, A_Key_down: AutoRun}
         }
 
     def start(self):
