@@ -130,6 +130,7 @@ class AutoRun:
             boy.dir, boy.action = -1, 0
         elif boy.action == 3:
             boy.dir, boy.action = 1, 1
+        boy.acceralation = 1
         boy.start_time = get_time()
         print('AutoRun enter')
         pass
@@ -148,14 +149,15 @@ class AutoRun:
             boy.dir, boy.action = -1, 0
         elif boy.x <= 0:
             boy.dir, boy.action = 1, 1
-        boy.x += boy.dir * 5
+        boy.x += boy.dir * boy.acceralation
+        boy.acceralation = boy.acceralation + 0.1
         print('AutoRun do')
         pass
 
     @staticmethod
     def draw(boy):
         boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100,
-                            boy.x, boy.y)
+                            boy.x, boy.y + 40, 200, 200)
         pass
 
 
@@ -201,6 +203,7 @@ class Boy:
         self.x, self.y = 400, 90
         self.frame = 0
         self.action = 3
+        self.accelaration = 1
         self.image = load_image('animation_sheet.png')
         self.state_machine = StateMachine(self)
         self.state_machine.start()
