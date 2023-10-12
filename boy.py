@@ -36,10 +36,6 @@ def A_Key_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_a
 
 
-def A_Key_up(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_a
-
-
 class Sleep:
 
     @staticmethod
@@ -130,6 +126,11 @@ class AutoRun:
 
     @staticmethod
     def enter(boy, e):
+        if boy.action == 2:
+            boy.dir, boy.action = -1, 0
+        elif boy.action == 3:
+            boy.dir, boy.action = 1, 1
+        boy.frame = 0
         boy.start_time = get_time()
         print('AutoRun enter')
         pass
@@ -144,6 +145,11 @@ class AutoRun:
         boy.frame = (boy.frame + 1) % 8
         if get_time() - boy.start_time > 5:
             boy.state_machine.handle_event(('TIME_OUT', 5.0))
+        if boy.x == 800:
+            boy.dir, boy.action = -1, 0
+        elif boy.x == 0:
+            boy.dir, boy.action = 1, 1
+        boy.x += boy.dir * 5
         print('AutoRun do')
         pass
 
@@ -161,12 +167,12 @@ class StateMachine:
         self.table = {
             Idle: {right_down: Run, left_down: Run, left_up: Run, right_up: Run,
                    time_out: Sleep,
-                   A_Key_down: AutoRun, A_Key_up: AutoRun},
+                   A_Key_down: AutoRun},
             Run: {right_down: Idle, left_down: Idle, right_up: Idle, left_up: Idle},
             AutoRun: {A_Key_down: Idle, time_out_5: Idle},
             Sleep: {right_down: Run, left_down: Run, right_up: Run, left_up: Run,
                     space_down: Idle,
-                    A_Key_up: AutoRun, A_Key_down: AutoRun}
+                    A_Key_down: AutoRun}
         }
 
     def start(self):
